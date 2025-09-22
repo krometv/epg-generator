@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML EPG Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .secondary-button {
+            background: #6c757d;
+        }
+        
+        .success-button {
+            background: #28a745;
+        }
+        
+        .warning-button {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .danger-button {
+            background: #dc3545;
+        }
+        
+        #output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        #xmlOutput {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .stat-card h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 XML EPG Generator</h1>
+            <p>Generate Electronic Program Guide XML for Sports Events</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <strong>ℹ️ Instructions:</strong>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Input events in the format: Channel ID :Event Name @ Date Time</li>
+                    <li>Example: MLB 01 :Cleveland Guardians vs Detroit Tigers @ Sep 18 1:10 PM</li>
+                    <li>Each event gets a 3.5hr timeslot with 30min warmup before</li>
+                    <li>Data older than 7 days is automatically removed</li>
+                </ul>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3>📝 Event Input</h3>
+                    <label for="eventInput">Enter Events (one per line):</label>
+                    <textarea id="eventInput" placeholder="MLB 01 :Cleveland Guardians vs Detroit Tigers @ Sep 18 1:10 PM
+Peacock Event 01 :World Athletics Champs Day 6 PM @ Sep 18 06:05 AM
+NFL Game Pass 1 :Lions vs Bears @ Sep 18 8:15 PM"></textarea>
+                    
+                    <div class="button-group">
+                        <button id="generateBtn">Generate EPG</button>
+                        <button id="clearBtn" class="secondary-button">Clear Input</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>⚙️ GitHub Upload Settings</h3>
+                    <label for="githubToken">GitHub Personal Access Token:</label>
+                    <input type="password" id="githubToken" placeholder="Enter your GitHub PAT">
+                    
+                    <label for="githubRepo" style="margin-top: 10px;">Repository:</label>
+                    <input type="text" id="githubRepo" value="krometv/EPG" readonly>
+                    
+                    <label for="githubPath" style="margin-top: 10px;">File Path:</label>
+                    <input type="text" id="githubPath" value="KTV_EPG_Events-all.xml" readonly>
+                    
+                    <div class="button-group">
+                        <button id="uploadBtn" disabled>📤 Upload to GitHub</button>
+                        <button id="downloadBtn" class="success-button">💾 Download XML</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>🛠️ EPG Management</h3>
+                <div class="button-group">
+                    <button id="initBtn">Initialize Dummy Channels</button>
+                    <button id="loadBtn" class="warning-button">Load Existing EPG</button>
+                    <button id="clearDataBtn" class="danger-button">Clear All Data</button>
+                    <button id="statsBtn" class="secondary-button">Show Statistics</button>
+                </div>
+                
+                <div id="stats" class="stats" style="display: none;"></div>
+            </div>
+            
+            <div id="status" class="status"></div>
+            
+            <div id="output">
+                <h3>Generated EPG XML:</h3>
+                <pre id="xmlOutput">No EPG generated yet. Click "Initialize Dummy Channels" to start.</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Channel configurations
+        const channelConfigs = [
+            { prefix: 'MLB ', count: 30, sport: 'baseball' },
+            { prefix: 'Peacock Event ', count: 100, sport: 'athletic' },
+            { prefix: 'NFL Game Pass ', count: 30, sport: 'football' },
+            { prefix: 'VIX+ ', count: 10, sport: 'soccer' },
+            { prefix: 'BTN+ ', count: 100, sport: 'athletic' },
+            { prefix: 'Paramount+ ', count: 100, sport: 'soccer' },
+            { prefix: 'Stan Sports ', count: 81, sport: 'rugby' },
+            { prefix: 'Milb ', count: 300, sport: 'baseball' },
+            { prefix: 'ESPN+ ', count: 300, sport: 'athletic' },
+            { prefix: 'Flo Wrestling ', count: 100, sport: 'athletic' },
+            { prefix: 'Flo Hockey ', count: 300, sport: 'hockey' },
+            { prefix: 'NHL ', count: 30, sport: 'hockey' },
+            { prefix: 'Flo Baseball ', count: 100, sport: 'baseball' },
+            { prefix: 'Flo Football ', count: 100, sport: 'football' },
+            { prefix: 'Flo College ', count: 300, sport: 'athletic' },
+            { prefix: 'Flo Racing ', count: 50, sport: 'racing' },
+            { prefix: 'TSN+ ', count: 100, sport: 'athletic' },
+            { prefix: 'WNBA ', count: 30, sport: 'basketball' },
+            { prefix: 'Tennis ', count: 150, sport: 'tennis' },
+            { prefix: 'MAX US', count: 300, sport: 'athletic' },
+            { prefix: 'UEFA ', count: 20, sport: 'soccer' },
+            { prefix: 'Clubber Event ', count: 89, sport: 'athletic' },
+            { prefix: 'MLS ', count: 60, sport: 'soccer' },
+            { prefix: 'EFL', count: 40, sport: 'soccer' },
+            { prefix: 'PPV ', count: 120, sport: 'athletic' },
+            { prefix: 'Dirtvision ', count: 10, sport: 'racing' }
+        ];
+
+        let currentEPG = null;
+
+        // Format date time for XML
+        function formatDateTimeForXML(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}${hours}${minutes}${seconds} +0000`;
+        }
+
+        // Parse XML datetime
+        function parseXMLDateTime(xmlDateTime) {
+            const match = xmlDateTime.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+            if (match) {
+                const [, year, month, day, hour, minute, second] = match;
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+            return new Date();
+        }
+
+        // Escape XML special characters
+        function escapeXML(str) {
+            return str.replace(/&/g, '&amp;')
+                     .replace(/</g, '&lt;')
+                     .replace(/>/g, '&gt;')
+                     .replace(/"/g, '&quot;')
+                     .replace(/'/g, '&apos;');
+        }
+
+        // Generate XML
+        function generateXML(programmes) {
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            xml += '<tv>\n';
+            
+            // Add unique channels
+            const channels = [...new Set(programmes.map(p => p.channel))];
+            channels.sort();
+            
+            channels.forEach(channel => {
+                xml += `  <channel id="${channel}">\n`;
+                xml += `    <display-name>${channel}</display-name>\n`;
+                xml += `  </channel>\n`;
+            });
+            
+            // Add programmes sorted by channel and time
+            programmes.sort((a, b) => {
+                if (a.channel !== b.channel) {
+                    return a.channel.localeCompare(b.channel);
+                }
+                return a.start.localeCompare(b.start);
+            });
+            
+            programmes.forEach(prog => {
+                xml += `  <programme channel="${prog.channel}" start="${prog.start}" stop="${prog.stop}">\n`;
+                xml += `    <title>${escapeXML(prog.title)}</title>\n`;
+                xml += `    <desc>${escapeXML(prog.desc)}</desc>\n`;
+                xml += `  </programme>\n`;
+            });
+            
+            xml += '</tv>';
+            return xml;
+        }
+
+        // Parse existing EPG
+        function parseExistingEPG(xmlStr) {
+            const programmes = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlStr, 'text/xml');
+            
+            const progElements = doc.getElementsByTagName('programme');
+            for (let prog of progElements) {
+                programmes.push({
+                    channel: prog.getAttribute('channel'),
+                    start: prog.getAttribute('start'),
+                    stop: prog.getAttribute('stop'),
+                    title: prog.getElementsByTagName('title')[0]?.textContent || '',
+                    desc: prog.getElementsByTagName('desc')[0]?.textContent || ''
+                });
+            }
+            
+            return programmes;
+        }
+
+        // Display XML
+        function displayXML() {
+            document.getElementById('xmlOutput').textContent = currentEPG || 'No EPG generated';
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            setTimeout(() => {
+                statusDiv.className = 'status';
+            }, 5000);
+        }
+
+        // Get sport type from channel ID
+        function getSportType(channelId) {
+            const id = channelId.toLowerCase();
+            if (id.includes('mlb') || id.includes('baseball')) return 'baseball';
+            if (id.includes('nfl') || id.includes('football')) return 'football';
+            if (id.includes('nba') || id.includes('wnba') || id.includes('basketball')) return 'basketball';
+            if (id.includes('nhl') || id.includes('hockey')) return 'hockey';
+            if (id.includes('racing') || id.includes('dirtvision')) return 'racing';
+            if (id.includes('soccer') || id.includes('vix') || id.includes('mls') || id.includes('uefa') || id.includes('efl')) return 'soccer';
+            if (id.includes('tennis')) return 'tennis';
+            if (id.includes('rugby') || id.includes('stan')) return 'rugby';
+            return 'athletic';
+        }
+
+        // Generate description based on event
+        function generateDescription(eventName, sport) {
+            const baseDesc = `Live coverage of ${eventName}.`;
+            const sportDescs = {
+                'baseball': 'Full game coverage with live commentary and analysis.',
+                'football': 'Complete game broadcast with expert commentary.',
+                'basketball': 'Live action from tip-off to final buzzer.',
+                'hockey': 'Full game coverage including all periods and overtime if needed.',
+                'racing': 'Live race coverage with qualifying and post-race analysis.',
+                'soccer': 'Full match coverage including pre-match buildup.',
+                'tennis': 'Complete match coverage with live scores and statistics.',
+                'rugby': 'Full match broadcast with expert analysis.',
+                'athletic': 'Complete event coverage with expert commentary.'
+            };
+            return `${baseDesc} ${sportDescs[sport] || sportDescs['athletic']}`;
+        }
+
+        // Parse date time string
+        function parseDateTime(dateTimeStr) {
+            const months = {
+                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+            };
+            
+            // Standard format: Sep 18 1:10 PM
+            const match = dateTimeStr.match(/(\w+)\s+(\d+)\s+(\d+):(\d+)\s*(AM|PM)/i);
+            if (match) {
+                const [, month, day, hour, minute, ampm] = match;
+                const year = new Date().getFullYear();
+                let hours = parseInt(hour);
+                
+                if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                
+                return new Date(year, months[month], parseInt(day), hours, parseInt(minute));
+            }
+            
+            // UEFA format: 17:45 18/09
+            const uefaMatch = dateTimeStr.match(/(\d+):(\d+)\s+(\d+)\/(\d+)/);
+            if (uefaMatch) {
+                const [, hour, minute, day, month] = uefaMatch;
+                const year = new Date().getFullYear();
+                return new Date(year, parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+            }
+            
+            // Simple time format: 17:45
+            const timeMatch = dateTimeStr.match(/(\d+):(\d+)/);
+            if (timeMatch) {
+                const [, hour, minute] = timeMatch;
+                const date = new Date();
+                date.setHours(parseInt(hour), parseInt(minute), 0, 0);
+                return date;
+            }
+            
+            // ISO format: 2025-09-20 16:00:00
+            const isoMatch = dateTimeStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+            if (isoMatch) {
+                const [, year, month, day, hour, minute, second] = isoMatch;
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+            
+            return null;
+        }
+
+        // Format time in 12-hour format
+        function formatTime12Hr(date) {
+            let hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            return `${hours}:${minutesStr} ${ampm}`;
+        }
+
+        // Initialize dummy channels
+        document.getElementById('initBtn').addEventListener('click', function() {
+            const now = new Date();
+            const programmes = [];
+            
+            channelConfigs.forEach(config => {
+                for (let i = 1; i <= config.count; i++) {
+                    const channelNum = i.toString().padStart(2, '0');
+                    const channelId = config.prefix.trim() + channelNum;
+                    
+                    // Add 1-hour dummy slot
+                    const startTime = new Date(now);
+                    const endTime = new Date(now.getTime() + 60 * 60 * 1000);
+                    
+                    programmes.push({
+                        channel: channelId.replace(/\s+/g, ''),
+                        start: formatDateTimeForXML(startTime),
+                        stop: formatDateTimeForXML(endTime),
+                        title: 'Channel Placeholder',
+                        desc: `Placeholder for ${channelId}`
+                    });
+                }
+            });
+            
+            currentEPG = generateXML(programmes);
+            displayXML();
+            showStatus('Dummy channels initialized successfully!', 'success');
+            document.getElementById('uploadBtn').disabled = false;
+        });
+
+        // Parse events
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const input = document.getElementById('eventInput').value.trim();
+            if (!input) {
+                showStatus('Please enter some events', 'error');
+                return;
+            }
+            
+            const lines = input.split('\n');
+            const programmes = currentEPG ? parseExistingEPG(currentEPG) : [];
+            
+            lines.forEach(line => {
+                const match = line.match(/^(.+?)\s*:\s*(.+?)\s*@\s*(.+)$/);
+                if (match) {
+                    const [, channelId, eventName, dateTimeStr] = match;
+                    const eventTime = parseDateTime(dateTimeStr.trim());
+                    
+                    if (eventTime) {
+                        // Determine sport type from channel
+                        const sport = getSportType(channelId);
+                        
+                        // Add 8-hour "Event Later Today" slot
+                        const laterStart = new Date(eventTime.getTime() - 8.5 * 60 * 60 * 1000);
+                        const laterEnd = new Date(eventTime.getTime() - 0.5 * 60 * 60 * 1000);
+                        
+                        programmes.push({
+                            channel: channelId.replace(/\s+/g, ''),
+                            start: formatDateTimeForXML(laterStart),
+                            stop: formatDateTimeForXML(laterEnd),
+                            title: `Event Later Today - ${eventName} @ ${formatTime12Hr(eventTime)}`,
+                            desc: `Upcoming: ${eventName}`
+                        });
+                        
+                        // Add 30-minute warmup slot
+                        const warmupStart = new Date(eventTime.getTime() - 0.5 * 60 * 60 * 1000);
+                        const warmupTitle = sport === 'racing' ? 
+                            'Engines Starting, Race Starting Soon' : 
+                            'Players Warming Up';
+                        
+                        programmes.push({
+                            channel: channelId.replace(/\s+/g, ''),
+                            start: formatDateTimeForXML(warmupStart),
+                            stop: formatDateTimeForXML(eventTime),
+                            title: warmupTitle,
+                            desc: `Pre-game coverage for ${eventName}`
+                        });
+                        
+                        // Add main event (3.5 hours)
+                        const eventEnd = new Date(eventTime.getTime() + 3.5 * 60 * 60 * 1000);
+                        
+                        programmes.push({
+                            channel: channelId.replace(/\s+/g, ''),
+                            start: formatDateTimeForXML(eventTime),
+                            stop: formatDateTimeForXML(eventEnd),
+                            title: `Live: ${eventName}`,
+                            desc: generateDescription(eventName, sport)
+                        });
+                    }
+                }
+            });
+            
+            // Remove old data (older than 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            const filteredProgrammes = programmes.filter(prog => {
+                const progDate = parseXMLDateTime(prog.start);
+                return progDate > sevenDaysAgo;
+            });
+            
+            currentEPG = generateXML(filteredProgrammes);
+            displayXML();
+            showStatus(`EPG generated with ${filteredProgrammes.length} programmes!`, 'success');
+            document.getElementById('uploadBtn').disabled = false;
+        });
+
+        // Clear input
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('eventInput').value = '';
+            showStatus('Input cleared', 'success');
+        });
+
+        // Upload to GitHub
+        document.getElementById('uploadBtn').addEventListener('click', async function() {
+            const token = document.getElementById('githubToken').value.trim();
+            if (!token) {
+                showStatus('Please enter your GitHub token', 'error');
+                return;
+            }
+            
+            if (!currentEPG) {
+                showStatus('No EPG to upload', 'error');
+                return;
+            }
+            
+            try {
+                const repo = document.getElementById('githubRepo').value;
+                const path = document.getElementById('githubPath').value;
+                const [owner, repoName] = repo.split('/');
+                
+                // First, try to get the file to see if it exists
+                let sha = null;
+                try {
+                    const getResponse = await fetch(
+                        `https://api.github.com/repos/${owner}/${repoName}/contents/${path}`,
+                        {
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        }
+                    );
+                    
+                    if (getResponse.ok) {
+                        const fileData = await getResponse.json();
+                        sha = fileData.sha;
+                    }
+                } catch (e) {
+                    // File doesn't exist, that's okay
+                }
+                
+                // Upload the file
+                const content = btoa(unescape(encodeURIComponent(currentEPG)));
+                const body = {
+                    message: `Update EPG - ${new Date().toISOString()}`,
+                    content: content
+                };
+                
+                if (sha) {
+                    body.sha = sha;
+                }
+                
+                const response = await fetch(
+                    `https://api.github.com/repos/${owner}/${repoName}/contents/${path}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    }
+                );
+                
+                if (response.ok) {
+                    showStatus('Successfully uploaded to GitHub!', 'success');
+                } else {
+                    const error = await response.text();
+                    showStatus(`GitHub upload failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Upload error: ${error.message}`, 'error');
+            }
+        });
+
+        // Download XML
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (!currentEPG) {
+                showStatus('No EPG to download', 'error');
+                return;
+            }
+            
+            const blob = new Blob([currentEPG], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'KTV_EPG_Events-all.xml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('XML downloaded successfully!', 'success');
+        });
+
+        // Load existing EPG
+        document.getElementById('loadBtn').addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xml';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const text = await file.text();
+                    currentEPG = text;
+                    displayXML();
+                    showStatus('EPG loaded successfully!', 'success');
+                    document.getElementById('uploadBtn').disabled = false;
+                }
+            };
+            input.click();
+        });
+
+        // Clear all data
+        document.getElementById('clearDataBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all EPG data?')) {
+                currentEPG = null;
+                document.getElementById('xmlOutput').textContent = 'No EPG generated yet';
+                document.getElementById('uploadBtn').disabled = true;
+                showStatus('All data cleared', 'success');
+            }
+        });
+
+        // Show statistics
+        document.getElementById('statsBtn').addEventListener('click', function() {
+            if (!currentEPG) {
+                showStatus('No EPG data to analyze', 'error');
+                return;
+            }
+            
+            const programmes = parseExistingEPG(currentEPG);
+            const channels = [...new Set(programmes.map(p => p.channel))];
+            
+            const now = new Date();
+            const upcoming = programmes.filter(p => parseXMLDateTime(p.start) > now).length;
+            const past = programmes.filter(p => parseXMLDateTime(p.stop) < now).length;
+            const live = programmes.filter(p => {
+                const start = parseXMLDateTime(p.start);
+                const stop = parseXMLDateTime(p.stop);
+                return start <= now && stop >= now;
+            }).length;
+            
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <h4>Total Channels</h4>
+                    <p>${channels.length}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Programmes</h4>
+                    <p>${programmes.length}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Live Now</h4>
+                    <p>${live}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Upcoming</h4>
+                    <p>${upcoming}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Past</h4>
+                    <p>${past}</p>
+                </div>
+            `;
+            statsDiv.style.display = 'grid';
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            showStatus('Ready to generate EPG. Start by initializing dummy channels.', 'success');
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML EPG Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .secondary-button {
+            background: #6c757d;
+        }
+        
+        .success-button {
+            background: #28a745;
+        }
+        
+        .warning-button {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .danger-button {
+            background: #dc3545;
+        }
+        
+        #output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        #xmlOutput {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .stat-card h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 XML EPG Generator</h1>
+            <p>Generate Electronic Program Guide XML for Sports Events</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <strong>ℹ️ Instructions:</strong>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Input events in the format: Channel ID :Event Name @ Date Time</li>
+                    <li>Example: MLB 01 :Cleveland Guardians vs Detroit Tigers @ Sep 18 1:10 PM</li>
+                    <li>Each event gets a 3.5hr timeslot with 30min warmup before</li>
+                    <li>Data older than 7 days is automatically removed</li>
+                </ul>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3>📝 Event Input</h3>
+                    <label for="eventInput">Enter Events (one per line):</label>
+                    <textarea id="eventInput" placeholder="MLB 01 :Cleveland Guardians vs Detroit Tigers @ Sep 18 1:10 PM
+Peacock Event 01 :World Athletics Champs Day 6 PM @ Sep 18 06:05 AM
+NFL Game Pass 1 :Lions vs Bears @ Sep 18 8:15 PM"></textarea>
+                    
+                    <div class="button-group">
+                        <button id="generateBtn">Generate EPG</button>
+                        <button id="clearBtn" class="secondary-button">Clear Input</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>⚙️ GitHub Upload Settings</h3>
+                    <label for="githubToken">GitHub Personal Access Token:</label>
+                    <input type="password" id="githubToken" placeholder="Enter your GitHub PAT">
+                    
+                    <label for="githubRepo" style="margin-top: 10px;">Repository:</label>
+                    <input type="text" id="githubRepo" value="krometv/EPG" readonly>
+                    
+                    <label for="githubPath" style="margin-top: 10px;">File Path:</label>
+                    <input type="text" id="githubPath" value="KTV_EPG_Events-all.xml" readonly>
+                    
+                    <div class="button-group">
+                        <button id="uploadBtn" disabled>📤 Upload to GitHub</button>
+                        <button id="downloadBtn" class="success-button">💾 Download XML</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>🛠️ EPG Management</h3>
+                <div class="button-group">
+                    <button id="initBtn">Initialize Dummy Channels</button>
+                    <button id="loadBtn" class="warning-button">Load Existing EPG</button>
+                    <button id="clearDataBtn" class="danger-button">Clear All Data</button>
+                    <button id="statsBtn" class="secondary-button">Show Statistics</button>
+                </div>
+                
+                <div id="stats" class="stats" style="display: none;"></div>
+            </div>
+            
+            <div id="status" class="status"></div>
+            
+            <div id="output">
+                <h3>Generated EPG XML:</h3>
+                <pre id="xmlOutput">No EPG generated yet. Click "Initialize Dummy Channels" to start.</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Channel configurations
+        const channelConfigs = [
+            { prefix: 'MLB ', count: 30, sport: 'baseball' },
+            { prefix: 'Peacock Event ', count: 100, sport: 'athletic' },
+            { prefix: 'NFL Game Pass ', count: 30, sport: 'football' },
+            { prefix: 'VIX+ ', count: 10, sport: 'soccer' },
+            { prefix: 'BTN+ ', count: 100, sport: 'athletic' },
+            { prefix: 'Paramount+ ', count: 100, sport: 'soccer' },
+            { prefix: 'Stan Sports ', count: 81, sport: 'rugby' },
+            { prefix: 'Milb ', count: 300, sport: 'baseball' },
+            { prefix: 'ESPN+ ', count: 300, sport: 'athletic' },
+            { prefix: 'Flo Wrestling ', count: 100, sport: 'athletic' },
+            { prefix: 'Flo Hockey ', count: 300, sport: 'hockey' },
+            { prefix: 'NHL ', count: 30, sport: 'hockey' },
+            { prefix: 'Flo Baseball ', count: 100, sport: 'baseball' },
+            { prefix: 'Flo Football ', count: 100, sport: 'football' },
+            { prefix: 'Flo College ', count: 300, sport: 'athletic' },
+            { prefix: 'Flo Racing ', count: 50, sport: 'racing' },
+            { prefix: 'TSN+ ', count: 100, sport: 'athletic' },
+            { prefix: 'WNBA ', count: 30, sport: 'basketball' },
+            { prefix: 'Tennis ', count: 150, sport: 'tennis' },
+            { prefix: 'MAX US', count: 300, sport: 'athletic' },
+            { prefix: 'UEFA ', count: 20, sport: 'soccer' },
+            { prefix: 'Clubber Event ', count: 89, sport: 'athletic' },
+            { prefix: 'MLS ', count: 60, sport: 'soccer' },
+            { prefix: 'EFL', count: 40, sport: 'soccer' },
+            { prefix: 'PPV ', count: 120, sport: 'athletic' },
+            { prefix: 'Dirtvision ', count: 10, sport: 'racing' }
+        ];
+
+        let currentEPG = null;
+
+        // Format date time for XML
+        function formatDateTimeForXML(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}${hours}${minutes}${seconds} +0000`;
+        }
+
+        // Parse XML datetime
+        function parseXMLDateTime(xmlDateTime) {
+            const match = xmlDateTime.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+            if (match) {
+                const [, year, month, day, hour, minute, second] = match;
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+            return new Date();
+        }
+
+        // Escape XML special characters
+        function escapeXML(str) {
+            return str.replace(/&/g, '&amp;')
+                     .replace(/</g, '&lt;')
+                     .replace(/>/g, '&gt;')
+                     .replace(/"/g, '&quot;')
+                     .replace(/'/g, '&apos;');
+        }
+
+        // Generate XML
+        function generateXML(programmes) {
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            xml += '<tv>\n';
+            
+            // Add unique channels
+            const channels = [...new Set(programmes.map(p => p.channel))];
+            channels.sort();
+            
+            channels.forEach(channel => {
+                xml += `  <channel id="${channel}">\n`;
+                xml += `    <display-name>${channel}</display-name>\n`;
+                xml += `  </channel>\n`;
+            });
+            
+            // Add programmes sorted by channel and time
+            programmes.sort((a, b) => {
+                if (a.channel !== b.channel) {
+                    return a.channel.localeCompare(b.channel);
+                }
+                return a.start.localeCompare(b.start);
+            });
+            
+            programmes.forEach(prog => {
+                xml += `  <programme channel="${prog.channel}" start="${prog.start}" stop="${prog.stop}">\n`;
+                xml += `    <title>${escapeXML(prog.title)}</title>\n`;
+                xml += `    <desc>${escapeXML(prog.desc)}</desc>\n`;
+                xml += `  </programme>\n`;
+            });
+            
+            xml += '</tv>';
+            return xml;
+        }
+
+        // Parse existing EPG
+        function parseExistingEPG(xmlStr) {
+            const programmes = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlStr, 'text/xml');
+            
+            const progElements = doc.getElementsByTagName('programme');
+            for (let prog of progElements) {
+                programmes.push({
+                    channel: prog.getAttribute('channel'),
+                    start: prog.getAttribute('start'),
+                    stop: prog.getAttribute('stop'),
+                    title: prog.getElementsByTagName('title')[0]?.textContent || '',
+                    desc: prog.getElementsByTagName('desc')[0]?.textContent || ''
+                });
+            }
+            
+            return programmes;
+        }
+
+        // Display XML
+        function displayXML() {
+            document.getElementById('xmlOutput').textContent = currentEPG || 'No EPG generated';
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            setTimeout(() => {
+                statusDiv.className = 'status';
+            }, 5000);
+        }
+
+        // Get sport type from channel ID
+        function getSportType(channelId) {
+            const id = channelId.toLowerCase();
+            if (id.includes('mlb') || id.includes('baseball')) return 'baseball';
+            if (id.includes('nfl') || id.includes('football')) return 'football';
+            if (id.includes('nba') || id.includes('wnba') || id.includes('basketball')) return 'basketball';
+            if (id.includes('nhl') || id.includes('hockey')) return 'hockey';
+            if (id.includes('racing') || id.includes('dirtvision')) return 'racing';
+            if (id.includes('soccer') || id.includes('vix') || id.includes('mls') || id.includes('uefa') || id.includes('efl')) return 'soccer';
+            if (id.includes('tennis')) return 'tennis';
+            if (id.includes('rugby') || id.includes('stan')) return 'rugby';
+            return 'athletic';
+        }
+
+        // Generate description based on event
+        function generateDescription(eventName, sport) {
+            const baseDesc = `Live coverage of ${eventName}.`;
+            const sportDescs = {
+                'baseball': 'Full game coverage with live commentary and analysis.',
+                'football': 'Complete game broadcast with expert commentary.',
+                'basketball': 'Live action from tip-off to final buzzer.',
+                'hockey': 'Full game coverage including all periods and overtime if needed.',
+                'racing': 'Live race coverage with qualifying and post-race analysis.',
+                'soccer': 'Full match coverage including pre-match buildup.',
+                'tennis': 'Complete match coverage with live scores and statistics.',
+                'rugby': 'Full match broadcast with expert analysis.',
+                'athletic': 'Complete event coverage with expert commentary.'
+            };
+            return `${baseDesc} ${sportDescs[sport] || sportDescs['athletic']}`;
+        }
+
+        // Parse date time string
+        function parseDateTime(dateTimeStr) {
+            const months = {
+                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+            };
+            
+            // Standard format: Sep 18 1:10 PM
+            const match = dateTimeStr.match(/(\w+)\s+(\d+)\s+(\d+):(\d+)\s*(AM|PM)/i);
+            if (match) {
+                const [, month, day, hour, minute, ampm] = match;
+                const year = new Date().getFullYear();
+                let hours = parseInt(hour);
+                
+                if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                
+                return new Date(year, months[month], parseInt(day), hours, parseInt(minute));
+            }
+            
+            // UEFA format: 17:45 18/09
+            const uefaMatch = dateTimeStr.match(/(\d+):(\d+)\s+(\d+)\/(\d+)/);
+            if (uefaMatch) {
+                const [, hour, minute, day, month] = uefaMatch;
+                const year = new Date().getFullYear();
+                return new Date(year, parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+            }
+            
+            // Simple time format: 17:45
+            const timeMatch = dateTimeStr.match(/(\d+):(\d+)/);
+            if (timeMatch) {
+                const [, hour, minute] = timeMatch;
+                const date = new Date();
+                date.setHours(parseInt(hour), parseInt(minute), 0, 0);
+                return date;
+            }
+            
+            // ISO format: 2025-09-20 16:00:00
+            const isoMatch = dateTimeStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+            if (isoMatch) {
+                const [, year, month, day, hour, minute, second] = isoMatch;
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+            
+            return null;
+        }
+
+        // Format time in 12-hour format
+        function formatTime12Hr(date) {
+            let hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            return `${hours}:${minutesStr} ${ampm}`;
+        }
+
+        // Initialize dummy channels
+        document.getElementById('initBtn').addEventListener('click', function() {
+            const now = new Date();
+            const programmes = [];
+            
+            channelConfigs.forEach(config => {
+                for (let i = 1; i <= config.count; i++) {
+                    const channelNum = i.toString().padStart(2, '0');
+                    const channelId = config.prefix.trim() + channelNum;
+                    
+                    // Add 1-hour dummy slot
+                    const startTime = new Date(now);
+                    const endTime = new Date(now.getTime() + 60 * 60 * 1000);
+                    
+                    programmes.push({
+                        channel: channelId.replace(/\s+/g, ''),
+                        start: formatDateTimeForXML(startTime),
+                        stop: formatDateTimeForXML(endTime),
+                        title: 'Channel Placeholder',
+                        desc: `Placeholder for ${channelId}`
+                    });
+                }
+            });
+            
+            currentEPG = generateXML(programmes);
+            displayXML();
+            showStatus('Dummy channels initialized successfully!', 'success');
+            document.getElementById('uploadBtn').disabled = false;
+        });
+
+        // Parse events
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const input = document.getElementById('eventInput').value.trim();
+            if (!input) {
+                showStatus('Please enter some events', 'error');
+                return;
+            }
+            
+            const lines = input.split('\n');
+            const programmes = currentEPG ? parseExistingEPG(currentEPG) : [];
+            
+            lines.forEach(line => {
+                const match = line.match(/^(.+?)\s*:\s*(.+?)\s*@\s*(.+)$/);
+                if (match) {
+                    const [, channelId, eventName, dateTimeStr] = match;
+                    const eventTime = parseDateTime(dateTimeStr.trim());
+                    
+                    if (eventTime) {
+                        // Determine sport type from channel
+                        const sport = getSportType(channelId);
+                        
+                        // Add 8-hour "Event Later Today" slot
+                        const laterStart = new Date(eventTime.getTime() - 8.5 * 60 * 60 * 1000);
+                        const laterEnd = new Date(eventTime.getTime() - 0.5 * 60 * 60 * 1000);
+                        
+                        programmes.push({
+                            channel: channelId.replace(/\s+/g, ''),
+                            start: formatDateTimeForXML(laterStart),
+                            stop: formatDateTimeForXML(laterEnd),
+                            title: `Event Later Today - ${eventName} @ ${formatTime12Hr(eventTime)}`,
+                            desc: `Upcoming: ${eventName}`
+                        });
+                        
+                        // Add 30-minute warmup slot
+                        const warmupStart = new Date(eventTime.getTime() - 0.5 * 60 * 60 * 1000);
+                        const warmupTitle = sport === 'racing' ? 
+                            'Engines Starting, Race Starting Soon' : 
+                            'Players Warming Up';
+                        
+                        programmes.push({
+                            channel: channelId.replace(/\s+/g, ''),
+                            start: formatDateTimeForXML(warmupStart),
+                            stop: formatDateTimeForXML(eventTime),
+                            title: warmupTitle,
+                            desc: `Pre-game coverage for ${eventName}`
+                        });
+                        
+                        // Add main event (3.5 hours)
+                        const eventEnd = new Date(eventTime.getTime() + 3.5 * 60 * 60 * 1000);
+                        
+                        programmes.push({
+                            channel: channelId.replace(/\s+/g, ''),
+                            start: formatDateTimeForXML(eventTime),
+                            stop: formatDateTimeForXML(eventEnd),
+                            title: `Live: ${eventName}`,
+                            desc: generateDescription(eventName, sport)
+                        });
+                    }
+                }
+            });
+            
+            // Remove old data (older than 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            const filteredProgrammes = programmes.filter(prog => {
+                const progDate = parseXMLDateTime(prog.start);
+                return progDate > sevenDaysAgo;
+            });
+            
+            currentEPG = generateXML(filteredProgrammes);
+            displayXML();
+            showStatus(`EPG generated with ${filteredProgrammes.length} programmes!`, 'success');
+            document.getElementById('uploadBtn').disabled = false;
+        });
+
+        // Clear input
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('eventInput').value = '';
+            showStatus('Input cleared', 'success');
+        });
+
+        // Upload to GitHub
+        document.getElementById('uploadBtn').addEventListener('click', async function() {
+            const token = document.getElementById('githubToken').value.trim();
+            if (!token) {
+                showStatus('Please enter your GitHub token', 'error');
+                return;
+            }
+            
+            if (!currentEPG) {
+                showStatus('No EPG to upload', 'error');
+                return;
+            }
+            
+            try {
+                const repo = document.getElementById('githubRepo').value;
+                const path = document.getElementById('githubPath').value;
+                const [owner, repoName] = repo.split('/');
+                
+                // First, try to get the file to see if it exists
+                let sha = null;
+                try {
+                    const getResponse = await fetch(
+                        `https://api.github.com/repos/${owner}/${repoName}/contents/${path}`,
+                        {
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        }
+                    );
+                    
+                    if (getResponse.ok) {
+                        const fileData = await getResponse.json();
+                        sha = fileData.sha;
+                    }
+                } catch (e) {
+                    // File doesn't exist, that's okay
+                }
+                
+                // Upload the file
+                const content = btoa(unescape(encodeURIComponent(currentEPG)));
+                const body = {
+                    message: `Update EPG - ${new Date().toISOString()}`,
+                    content: content
+                };
+                
+                if (sha) {
+                    body.sha = sha;
+                }
+                
+                const response = await fetch(
+                    `https://api.github.com/repos/${owner}/${repoName}/contents/${path}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    }
+                );
+                
+                if (response.ok) {
+                    showStatus('Successfully uploaded to GitHub!', 'success');
+                } else {
+                    const error = await response.text();
+                    showStatus(`GitHub upload failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Upload error: ${error.message}`, 'error');
+            }
+        });
+
+        // Download XML
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (!currentEPG) {
+                showStatus('No EPG to download', 'error');
+                return;
+            }
+            
+            const blob = new Blob([currentEPG], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'KTV_EPG_Events-all.xml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('XML downloaded successfully!', 'success');
+        });
+
+        // Load existing EPG
+        document.getElementById('loadBtn').addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xml';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const text = await file.text();
+                    currentEPG = text;
+                    displayXML();
+                    showStatus('EPG loaded successfully!', 'success');
+                    document.getElementById('uploadBtn').disabled = false;
+                }
+            };
+            input.click();
+        });
+
+        // Clear all data
+        document.getElementById('clearDataBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all EPG data?')) {
+                currentEPG = null;
+                document.getElementById('xmlOutput').textContent = 'No EPG generated yet';
+                document.getElementById('uploadBtn').disabled = true;
+                showStatus('All data cleared', 'success');
+            }
+        });
+
+        // Show statistics
+        document.getElementById('statsBtn').addEventListener('click', function() {
+            if (!currentEPG) {
+                showStatus('No EPG data to analyze', 'error');
+                return;
+            }
+            
+            const programmes = parseExistingEPG(currentEPG);
+            const channels = [...new Set(programmes.map(p => p.channel))];
+            
+            const now = new Date();
+            const upcoming = programmes.filter(p => parseXMLDateTime(p.start) > now).length;
+            const past = programmes.filter(p => parseXMLDateTime(p.stop) < now).length;
+            const live = programmes.filter(p => {
+                const start = parseXMLDateTime(p.start);
+                const stop = parseXMLDateTime(p.stop);
+                return start <= now && stop >= now;
+            }).length;
+            
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <h4>Total Channels</h4>
+                    <p>${channels.length}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Programmes</h4>
+                    <p>${programmes.length}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Live Now</h4>
+                    <p>${live}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Upcoming</h4>
+                    <p>${upcoming}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Past</h4>
+                    <p>${past}</p>
+                </div>
+            `;
+            statsDiv.style.display = 'grid';
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            showStatus('Ready to generate EPG. Start by initializing dummy channels.', 'success');
+        });
+    </script>
+</body>
+</html>
