@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -210,6 +210,11 @@
                 width: 100%;
             }
         }
+        
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -227,9 +232,11 @@
                 <label>Enter Events (Format: Channel ID :Event Name @ Date Time)</label>
                 <textarea id="eventInput" placeholder="MLB 01 :Yankees vs Red Sox @ Sep 22 7:00 PM
 Peacock Event 01 :World Athletics @ Sep 22 06:00 AM
-NFL Game Pass 1 :Lions vs Bears @ Sep 22 1:00 PM"></textarea>
+NFL Game Pass 1 :Lions vs Bears @ Sep 22 1:00 PM
+EFL01 :Chelsea vs Arsenal @ Sep 22 3:00 PM
+MAX US01 :Cycling Tour @ Sep 22 9:00 AM"></textarea>
                 <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
-                    <button onclick="generateEPG()" class="btn-success">Generate EPG</button>
+                    <button onclick="addEvents()" class="btn-success">Add Events to EPG</button>
                     <button onclick="clearInput()" class="btn-secondary">Clear Input</button>
                 </div>
             </div>
@@ -237,9 +244,8 @@ NFL Game Pass 1 :Lions vs Bears @ Sep 22 1:00 PM"></textarea>
             <div class="control-group">
                 <h3>🛠️ EPG Management</h3>
                 <div class="button-grid">
-                    <button onclick="initChannels()" class="btn-primary">Initialize Channels</button>
-                    <button onclick="loadFromGitHub()" class="btn-warning">Load from GitHub</button>
-                    <button onclick="loadFromFile()" class="btn-warning">Load from File</button>
+                    <button onclick="initChannels()" class="btn-primary">Initialize Fresh Channels</button>
+                    <button onclick="loadAndAppend()" class="btn-warning">Load & Continue</button>
                     <button onclick="purgeOld()" class="btn-info">Purge Old (7+ days)</button>
                     <button onclick="clearAll()" class="btn-danger">Clear All</button>
                     <button onclick="showStatistics()" class="btn-secondary">Show Stats</button>
@@ -248,19 +254,20 @@ NFL Game Pass 1 :Lions vs Bears @ Sep 22 1:00 PM"></textarea>
             </div>
             
             <div class="control-group">
-                <h3>💾 Save Options</h3>
+                <h3>💾 GitHub Integration</h3>
                 <label>GitHub Token (saved locally):</label>
                 <input type="password" id="githubToken" placeholder="Enter GitHub Personal Access Token">
-                <div class="button-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 10px;">
+                <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
                     <button onclick="saveToken()" class="btn-info">Save Token</button>
-                    <button onclick="saveToGitHub()" class="btn-success">Save to GitHub</button>
-                    <button onclick="downloadXML()" class="btn-warning">Download XML</button>
+                    <button onclick="saveToGitHub()" class="btn-success">💾 Save EPG to GitHub</button>
                 </div>
+                <div id="saveStatus" style="margin-top: 10px;"></div>
             </div>
             
             <div class="control-group">
                 <h3>Generated EPG XML:</h3>
-                <div id="xmlOutput">No EPG generated yet. Click "Initialize Channels" to start.</div>
+                <button onclick="downloadXML()" class="btn-warning" style="margin-bottom: 10px;">📥 Download XML</button>
+                <div id="xmlOutput">No EPG generated yet. Click "Initialize Fresh Channels" or "Load & Continue" to start.</div>
             </div>
         </div>
     </div>
@@ -271,34 +278,34 @@ let currentEPG = null;
 const GITHUB_REPO = 'krometv/EPG';
 const GITHUB_FILE = 'KTV_EPG_Events-all.xml';
 
-// Channel configurations
+// Channel configurations - FIXED WITH PROPER SPACING
 const channelConfigs = [
-    { prefix: 'MLB', space: ' ', count: 30, sport: 'baseball' },
-    { prefix: 'Peacock Event', space: ' ', count: 100, sport: 'athletic' },
-    { prefix: 'NFL Game Pass', space: ' ', count: 30, sport: 'football' },
-    { prefix: 'VIX+', space: ' ', count: 10, sport: 'soccer' },
-    { prefix: 'BTN+', space: ' ', count: 100, sport: 'athletic' },
-    { prefix: 'Paramount+', space: ' ', count: 100, sport: 'soccer' },
-    { prefix: 'Stan Sports', space: ' ', count: 81, sport: 'rugby' },
-    { prefix: 'Milb', space: ' ', count: 300, sport: 'baseball' },
-    { prefix: 'ESPN+', space: ' ', count: 300, sport: 'athletic' },
-    { prefix: 'Flo Wrestling', space: ' ', count: 100, sport: 'athletic' },
-    { prefix: 'Flo Hockey', space: ' ', count: 300, sport: 'hockey' },
-    { prefix: 'NHL', space: ' ', count: 30, sport: 'hockey' },
-    { prefix: 'Flo Baseball', space: ' ', count: 100, sport: 'baseball' },
-    { prefix: 'Flo Football', space: ' ', count: 100, sport: 'football' },
-    { prefix: 'Flo College', space: ' ', count: 300, sport: 'athletic' },
-    { prefix: 'Flo Racing', space: ' ', count: 50, sport: 'racing' },
-    { prefix: 'TSN+', space: ' ', count: 100, sport: 'athletic' },
-    { prefix: 'WNBA', space: ' ', count: 30, sport: 'basketball' },
-    { prefix: 'Tennis', space: ' ', count: 150, sport: 'tennis' },
-    { prefix: 'MAX US', space: '', count: 300, sport: 'athletic' },
-    { prefix: 'UEFA', space: ' ', count: 20, sport: 'soccer' },
-    { prefix: 'Clubber Event', space: ' ', count: 89, sport: 'athletic' },
-    { prefix: 'MLS', space: ' ', count: 60, sport: 'soccer' },
-    { prefix: 'EFL', space: '', count: 40, sport: 'soccer' },
-    { prefix: 'PPV', space: ' ', count: 120, sport: 'athletic' },
-    { prefix: 'Dirtvision', space: ' ', count: 10, sport: 'racing' }
+    { prefix: 'MLB ', count: 30, sport: 'baseball' },          // MLB 01, MLB 02...
+    { prefix: 'Peacock Event ', count: 100, sport: 'athletic' }, // Peacock Event 01...
+    { prefix: 'NFL Game Pass ', count: 30, sport: 'football' },  // NFL Game Pass 1...
+    { prefix: 'VIX+ ', count: 10, sport: 'soccer' },            // VIX+ 01...
+    { prefix: 'BTN+ ', count: 100, sport: 'athletic' },         // BTN+ 01...
+    { prefix: 'Paramount+ ', count: 100, sport: 'soccer' },     // Paramount+ 01...
+    { prefix: 'Stan Sports ', count: 81, sport: 'rugby' },      // Stan Sports 01...
+    { prefix: 'Milb ', count: 300, sport: 'baseball' },         // Milb 01...
+    { prefix: 'ESPN+ ', count: 300, sport: 'athletic' },        // ESPN+ 01...
+    { prefix: 'Flo Wrestling ', count: 100, sport: 'athletic' }, // Flo Wrestling 01...
+    { prefix: 'Flo Hockey ', count: 300, sport: 'hockey' },     // Flo Hockey 01...
+    { prefix: 'NHL ', count: 30, sport: 'hockey' },             // NHL 01...
+    { prefix: 'Flo Baseball ', count: 100, sport: 'baseball' }, // Flo Baseball 01...
+    { prefix: 'Flo Football ', count: 100, sport: 'football' }, // Flo Football 01...
+    { prefix: 'Flo College ', count: 300, sport: 'athletic' },  // Flo College 01...
+    { prefix: 'Flo Racing ', count: 50, sport: 'racing' },      // Flo Racing 01...
+    { prefix: 'TSN+ ', count: 100, sport: 'athletic' },         // TSN+ 01...
+    { prefix: 'WNBA ', count: 30, sport: 'basketball' },        // WNBA 01...
+    { prefix: 'Tennis ', count: 150, sport: 'tennis' },         // Tennis 01...
+    { prefix: 'MAX US', count: 300, sport: 'athletic' },        // MAX US01 (no space)
+    { prefix: 'UEFA ', count: 20, sport: 'soccer' },            // UEFA 01...
+    { prefix: 'Clubber Event ', count: 89, sport: 'athletic' }, // Clubber Event 01...
+    { prefix: 'MLS ', count: 60, sport: 'soccer' },             // MLS 01...
+    { prefix: 'EFL', count: 40, sport: 'soccer' },              // EFL01 (no space)
+    { prefix: 'PPV ', count: 120, sport: 'athletic' },          // PPV 01...
+    { prefix: 'Dirtvision ', count: 10, sport: 'racing' }       // Dirtvision 01...
 ];
 
 // Initialize on load
@@ -307,7 +314,7 @@ window.onload = function() {
     if (token) {
         document.getElementById('githubToken').value = token;
     }
-    showStatus('Ready! Click "Initialize Channels" to start.', 'info');
+    showStatus('Ready! Click "Initialize Fresh Channels" for new EPG or "Load & Continue" to add to existing.', 'info');
 };
 
 // Show status message
@@ -341,10 +348,10 @@ function parseXMLDate(xmlDate) {
     return new Date();
 }
 
-// Initialize channels
+// Initialize fresh channels with proper display names
 function initChannels() {
     try {
-        if (currentEPG && !confirm('This will replace all existing data. Continue?')) {
+        if (currentEPG && !confirm('This will replace ALL existing data with fresh channels. Continue?')) {
             return;
         }
         
@@ -354,8 +361,17 @@ function initChannels() {
         channelConfigs.forEach(config => {
             for (let i = 1; i <= config.count; i++) {
                 const num = String(i).padStart(2, '0');
-                const displayName = config.prefix + config.space + num;
-                const xmlId = displayName.replace(/\s+/g, '');
+                // These channels have NO space before number
+                const noSpaceChannels = ['MAX US', 'EFL'];
+                let displayName;
+                
+                if (noSpaceChannels.some(ch => config.prefix.startsWith(ch))) {
+                    displayName = config.prefix.trim() + num;  // No space
+                } else {
+                    displayName = config.prefix.trim() + ' ' + num;  // With space
+                }
+                
+                const xmlId = displayName.replace(/[\s\-\.]+/g, '');
                 
                 programmes.push({
                     channel: xmlId,
@@ -370,7 +386,7 @@ function initChannels() {
         
         currentEPG = generateXML(programmes);
         document.getElementById('xmlOutput').textContent = currentEPG;
-        showStatus('Initialized ' + programmes.length + ' channels!', 'success');
+        showStatus('Initialized ' + programmes.length + ' channels with proper IDs!', 'success');
     } catch (e) {
         showStatus('Error: ' + e.message, 'error');
     }
@@ -497,8 +513,8 @@ function getSportType(channel) {
     return 'athletic';
 }
 
-// Generate EPG
-function generateEPG() {
+// Add events to current EPG
+function addEvents() {
     try {
         const input = document.getElementById('eventInput').value.trim();
         if (!input) {
@@ -517,8 +533,9 @@ function generateEPG() {
                 const eventTime = parseDateTime(time.trim());
                 
                 if (eventTime) {
+                    // Keep the display name exactly as entered
                     const displayName = ch.trim();
-                    const xmlId = displayName.replace(/\s+/g, '');
+                    const xmlId = displayName.replace(/[\s\-\.]+/g, '');
                     const sport = getSportType(ch);
                     
                     // Event later (8hr before)
@@ -574,10 +591,11 @@ function clearInput() {
     showStatus('Input cleared', 'success');
 }
 
-// Load from GitHub
-async function loadFromGitHub() {
+// Load from GitHub and continue
+async function loadAndAppend() {
     try {
-        showStatus('Loading from GitHub...', 'info');
+        document.getElementById('saveStatus').innerHTML = '<span class="loading">Loading from GitHub...</span>';
+        
         const response = await fetch(
             'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE,
             { headers: { 'Accept': 'application/vnd.github.v3+json' } }
@@ -588,30 +606,17 @@ async function loadFromGitHub() {
             currentEPG = atob(data.content);
             document.getElementById('xmlOutput').textContent = currentEPG;
             const progs = parseEPG(currentEPG);
-            showStatus('Loaded ' + progs.length + ' programmes from GitHub!', 'success');
+            document.getElementById('saveStatus').innerHTML = '';
+            showStatus('Loaded ' + progs.length + ' programmes from GitHub! Ready to add more.', 'success');
         } else {
-            showStatus('File not found on GitHub', 'error');
+            document.getElementById('saveStatus').innerHTML = '';
+            showStatus('No existing file on GitHub. Starting fresh.', 'info');
+            initChannels();
         }
     } catch (e) {
+        document.getElementById('saveStatus').innerHTML = '';
         showStatus('Error loading: ' + e.message, 'error');
     }
-}
-
-// Load from file
-function loadFromFile() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.xml';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            currentEPG = await file.text();
-            document.getElementById('xmlOutput').textContent = currentEPG;
-            const progs = parseEPG(currentEPG);
-            showStatus('Loaded ' + progs.length + ' programmes from file!', 'success');
-        }
-    };
-    input.click();
 }
 
 // Purge old
@@ -648,7 +653,7 @@ function clearAll() {
     
     if (confirm('Clear ALL data?')) {
         currentEPG = null;
-        document.getElementById('xmlOutput').textContent = 'No EPG generated yet. Click "Initialize Channels" to start.';
+        document.getElementById('xmlOutput').textContent = 'No EPG generated yet. Click "Initialize Fresh Channels" or "Load & Continue" to start.';
         document.getElementById('eventInput').value = '';
         document.getElementById('stats').style.display = 'none';
         showStatus('All data cleared!', 'success');
@@ -694,13 +699,13 @@ function saveToken() {
     const token = document.getElementById('githubToken').value.trim();
     if (token) {
         localStorage.setItem('githubToken', token);
-        showStatus('Token saved!', 'success');
+        showStatus('Token saved locally!', 'success');
     } else {
         showStatus('Please enter a token', 'error');
     }
 }
 
-// Save to GitHub
+// Save to GitHub (always loads existing first, then saves)
 async function saveToGitHub() {
     try {
         const token = document.getElementById('githubToken').value.trim();
@@ -714,7 +719,7 @@ async function saveToGitHub() {
             return;
         }
         
-        showStatus('Saving to GitHub...', 'info');
+        document.getElementById('saveStatus').innerHTML = '<span class="loading">Saving to GitHub...</span>';
         
         // Get current SHA if exists
         let sha = null;
@@ -755,13 +760,25 @@ async function saveToGitHub() {
         );
         
         if (response.ok) {
+            document.getElementById('saveStatus').innerHTML = '✅ Saved successfully!';
             showStatus('Saved to GitHub successfully!', 'success');
+            setTimeout(() => {
+                document.getElementById('saveStatus').innerHTML = '';
+            }, 3000);
         } else {
             const error = await response.text();
+            document.getElementById('saveStatus').innerHTML = '❌ Save failed';
             showStatus('GitHub error: ' + error, 'error');
+            setTimeout(() => {
+                document.getElementById('saveStatus').innerHTML = '';
+            }, 5000);
         }
     } catch (e) {
+        document.getElementById('saveStatus').innerHTML = '❌ Save failed';
         showStatus('Error: ' + e.message, 'error');
+        setTimeout(() => {
+            document.getElementById('saveStatus').innerHTML = '';
+        }, 5000);
     }
 }
 
