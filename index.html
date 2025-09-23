@@ -275,7 +275,8 @@ MAX US01 :Cycling Tour @ Sep 22 9:00 AM"></textarea>
 <script>
 // Global variables
 let currentEPG = null;
-const GITHUB_REPO = 'krometv/EPG';
+// Use the CURRENT repository where this is hosted
+const GITHUB_REPO = 'krometv/epg-generator';  // Change this to match YOUR repo name
 const GITHUB_FILE = 'KTV_EPG_Events-all.xml';
 
 // Channel configurations - FIXED WITH PROPER SPACING
@@ -310,11 +311,14 @@ const channelConfigs = [
 
 // Initialize on load
 window.onload = function() {
-    const token = localStorage.getItem('githubToken');
-    if (token) {
-        document.getElementById('githubToken').value = token;
+    // Always load saved token on page load
+    const savedToken = localStorage.getItem('githubToken');
+    if (savedToken) {
+        document.getElementById('githubToken').value = savedToken;
+        showStatus('Token loaded. Ready to use!', 'success');
+    } else {
+        showStatus('Ready! Please enter your GitHub token first.', 'info');
     }
-    showStatus('Ready! Click "Initialize Fresh Channels" for new EPG or "Load & Continue" to add to existing.', 'info');
 };
 
 // Show status message
@@ -522,11 +526,22 @@ function addEvents() {
             return;
         }
         
-        const programmes = currentEPG ? parseEPG(currentEPG) : [];
+        // IMPORTANT: Load existing programmes if EPG exists
+        let programmes = [];
+        if (currentEPG) {
+            programmes = parseEPG(currentEPG);
+            showStatus('Adding to existing ' + programmes.length + ' programmes...', 'info');
+        } else {
+            showStatus('No existing EPG. Creating new...', 'info');
+        }
+        
         const lines = input.split('\n');
         let added = 0;
         
         lines.forEach(line => {
+            line = line.trim();
+            if (!line) return;  // Skip empty lines
+            
             const match = line.match(/^(.+?)\s*:\s*(.+?)\s*@\s*(.+)$/);
             if (match) {
                 const [,ch,event,time] = match;
@@ -573,15 +588,24 @@ function addEvents() {
                     });
                     
                     added += 3;
+                } else {
+                    showStatus('Could not parse date for: ' + line, 'error');
                 }
+            } else {
+                showStatus('Invalid format for: ' + line, 'error');
             }
         });
         
-        currentEPG = generateXML(programmes);
-        document.getElementById('xmlOutput').textContent = currentEPG;
-        showStatus('Added ' + added + ' programmes! Total: ' + programmes.length, 'success');
+        if (added > 0) {
+            currentEPG = generateXML(programmes);
+            document.getElementById('xmlOutput').textContent = currentEPG;
+            showStatus('✅ Added ' + added + ' new programmes! Total now: ' + programmes.length, 'success');
+        } else {
+            showStatus('No events were added. Check format.', 'error');
+        }
     } catch (e) {
         showStatus('Error: ' + e.message, 'error');
+        console.error(e);
     }
 }
 
@@ -699,9 +723,11 @@ function saveToken() {
     const token = document.getElementById('githubToken').value.trim();
     if (token) {
         localStorage.setItem('githubToken', token);
-        showStatus('Token saved locally!', 'success');
+        showStatus('Token saved! It will be remembered for next time.', 'success');
     } else {
-        showStatus('Please enter a token', 'error');
+        // If empty, remove saved token
+        localStorage.removeItem('githubToken');
+        showStatus('Token cleared', 'info');
     }
 }
 
