@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 10px;
@@ -21,7 +21,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -32,11 +32,6 @@
             padding: 20px;
             text-align: center;
             border-radius: 20px 20px 0 0;
-        }
-        
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
         }
         
         .content {
@@ -51,32 +46,29 @@
             border: 1px solid #e0e0e0;
         }
         
-        .control-group h3 {
+        h3 {
             margin-bottom: 15px;
             color: #333;
             border-bottom: 2px solid #667eea;
             padding-bottom: 5px;
         }
         
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        input, textarea {
+        textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 14px;
+            font-family: monospace;
+            font-size: 13px;
+            min-height: 150px;
         }
         
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: monospace;
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
         
         button {
@@ -86,7 +78,6 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
             margin: 5px;
         }
         
@@ -94,126 +85,78 @@
             background: #5a67d8;
         }
         
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-success {
-            background: #28a745;
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-        }
-        
-        .btn-info {
-            background: #17a2b8;
-        }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-info { background: #17a2b8; }
+        .btn-secondary { background: #6c757d; }
         
         #xmlOutput {
             background: #2d2d2d;
             color: #f8f8f2;
             padding: 15px;
             border-radius: 5px;
-            overflow-x: auto;
             font-family: monospace;
             font-size: 12px;
             line-height: 1.5;
             max-height: 400px;
-            overflow-y: auto;
+            overflow: auto;
             white-space: pre;
         }
         
-        .status {
+        #status {
             padding: 10px;
             border-radius: 5px;
-            margin: 10px 0;
+            margin-bottom: 20px;
             display: none;
         }
         
-        .status.show {
+        #status.success {
             display: block;
-        }
-        
-        .status.success {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
         }
         
-        .status.error {
+        #status.error {
+            display: block;
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
         }
         
-        .status.info {
+        #status.info {
+            display: block;
             background: #d1ecf1;
             color: #0c5460;
-            border: 1px solid #bee5eb;
+        }
+        
+        .button-row {
+            margin-top: 10px;
         }
         
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 10px;
             margin-top: 15px;
         }
         
         .stat-card {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 5px;
             text-align: center;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #ddd;
         }
         
         .stat-card h4 {
             color: #667eea;
+            font-size: 12px;
             margin-bottom: 5px;
-            font-size: 14px;
         }
         
         .stat-card p {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            color: #333;
-        }
-        
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.5em;
-            }
-            
-            .button-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            button {
-                width: 100%;
-            }
-        }
-        
-        .loading {
-            display: inline-block;
-            margin-left: 10px;
         }
     </style>
 </head>
@@ -221,209 +164,202 @@
     <div class="container">
         <div class="header">
             <h1>🎯 XML EPG Generator</h1>
-            <p>Generate Electronic Program Guide XML for Sports Events</p>
+            <p>Generate Electronic Program Guide XML</p>
         </div>
         
         <div class="content">
-            <div id="status" class="status"></div>
+            <div id="status"></div>
             
             <div class="control-group">
                 <h3>📝 Event Input</h3>
-                <label>Enter Events (Format: Channel ID :Event Name @ Date Time)</label>
-                <textarea id="eventInput" placeholder="MLB 01 :Yankees vs Red Sox @ Sep 22 7:00 PM
-Peacock Event 01 :World Athletics @ Sep 22 06:00 AM
-NFL Game Pass 1 :Lions vs Bears @ Sep 22 1:00 PM
-EFL01 :Chelsea vs Arsenal @ Sep 22 3:00 PM
-MAX US01 :Cycling Tour @ Sep 22 9:00 AM"></textarea>
-                <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
-                    <button onclick="addEvents()" class="btn-success">Add Events to EPG</button>
-                    <button onclick="clearInput()" class="btn-secondary">Clear Input</button>
+                <textarea id="eventInput" placeholder="Enter events in either format:
+Format 1: Channel ID :Event Name @ Sep 22 7:00 PM
+Format 2: Channel ID - Event Name 2025-09-22 19:30
+
+Examples:
+MLB 01 :Yankees vs Red Sox @ Sep 22 7:00 PM
+FloSports 3 - Balmoral Hall vs SAHA 2025-09-22 11:30"></textarea>
+                <div class="button-row">
+                    <button class="btn-success" onclick="addEvents()">Add Events to EPG</button>
+                    <button class="btn-secondary" onclick="document.getElementById('eventInput').value='';showMsg('Input cleared','info')">Clear Input</button>
                 </div>
             </div>
             
             <div class="control-group">
                 <h3>🛠️ EPG Management</h3>
-                <div class="button-grid">
-                    <button onclick="initChannels()" class="btn-primary">Initialize Fresh Channels</button>
-                    <button onclick="loadAndAppend()" class="btn-warning">Load & Continue</button>
-                    <button onclick="purgeOld()" class="btn-info">Purge Old (7+ days)</button>
-                    <button onclick="clearAll()" class="btn-danger">Clear All</button>
-                    <button onclick="showStatistics()" class="btn-secondary">Show Stats</button>
+                <div class="button-row">
+                    <button onclick="initChannels()">Initialize Channels</button>
+                    <button class="btn-warning" onclick="loadFromGitHub()">Load from GitHub</button>
+                    <button class="btn-info" onclick="purgeOld()">Purge Old (7+ days)</button>
+                    <button class="btn-danger" onclick="clearAllData()">Clear All</button>
+                    <button class="btn-secondary" onclick="showStats()">Show Stats</button>
                 </div>
-                <div id="stats" class="stats" style="display: none;"></div>
+                <div id="stats" class="stats" style="display:none"></div>
             </div>
             
             <div class="control-group">
-                <h3>💾 GitHub Integration</h3>
-                <label>GitHub Token (saved locally):</label>
-                <input type="password" id="githubToken" placeholder="Enter GitHub Personal Access Token">
-                <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
-                    <button onclick="saveToken()" class="btn-info">Save Token</button>
-                    <button onclick="saveToGitHub()" class="btn-success">💾 Save EPG to GitHub</button>
+                <h3>💾 Save Options</h3>
+                <input type="password" id="githubToken" placeholder="GitHub Token (saved locally)">
+                <div class="button-row">
+                    <button class="btn-info" onclick="saveToken()">Save Token</button>
+                    <button class="btn-success" onclick="saveToGitHub()">Save to GitHub</button>
+                    <button class="btn-warning" onclick="downloadXML()">Download XML</button>
                 </div>
-                <div id="saveStatus" style="margin-top: 10px;"></div>
             </div>
             
             <div class="control-group">
-                <h3>Generated EPG XML:</h3>
-                <button onclick="downloadXML()" class="btn-warning" style="margin-bottom: 10px;">📥 Download XML</button>
-                <div id="xmlOutput">No EPG generated yet. Click "Initialize Fresh Channels" or "Load & Continue" to start.</div>
+                <h3>XML Output:</h3>
+                <div id="xmlOutput">No EPG generated yet. Click "Initialize Channels" to start.</div>
             </div>
         </div>
     </div>
 
 <script>
-// Global variables
-let currentEPG = null;
-// Use the CURRENT repository where this is hosted
-const GITHUB_REPO = 'krometv/epg-generator';  // Change this to match YOUR repo name
-const GITHUB_FILE = 'KTV_EPG_Events-all.xml';
+// Global EPG data
+var currentEPG = null;
+var GITHUB_REPO = 'krometv/epg-generator'; // UPDATE THIS to your repo name
+var GITHUB_FILE = 'KTV_EPG_Events-all.xml';
 
-// Channel configurations - FIXED WITH PROPER SPACING
-const channelConfigs = [
-    { prefix: 'MLB ', count: 30, sport: 'baseball' },          // MLB 01, MLB 02...
-    { prefix: 'Peacock Event ', count: 100, sport: 'athletic' }, // Peacock Event 01...
-    { prefix: 'NFL Game Pass ', count: 30, sport: 'football' },  // NFL Game Pass 1...
-    { prefix: 'VIX+ ', count: 10, sport: 'soccer' },            // VIX+ 01...
-    { prefix: 'BTN+ ', count: 100, sport: 'athletic' },         // BTN+ 01...
-    { prefix: 'Paramount+ ', count: 100, sport: 'soccer' },     // Paramount+ 01...
-    { prefix: 'Stan Sports ', count: 81, sport: 'rugby' },      // Stan Sports 01...
-    { prefix: 'Milb ', count: 300, sport: 'baseball' },         // Milb 01...
-    { prefix: 'ESPN+ ', count: 300, sport: 'athletic' },        // ESPN+ 01...
-    { prefix: 'Flo Wrestling ', count: 100, sport: 'athletic' }, // Flo Wrestling 01...
-    { prefix: 'Flo Hockey ', count: 300, sport: 'hockey' },     // Flo Hockey 01...
-    { prefix: 'NHL ', count: 30, sport: 'hockey' },             // NHL 01...
-    { prefix: 'Flo Baseball ', count: 100, sport: 'baseball' }, // Flo Baseball 01...
-    { prefix: 'Flo Football ', count: 100, sport: 'football' }, // Flo Football 01...
-    { prefix: 'Flo College ', count: 300, sport: 'athletic' },  // Flo College 01...
-    { prefix: 'Flo Racing ', count: 50, sport: 'racing' },      // Flo Racing 01...
-    { prefix: 'TSN+ ', count: 100, sport: 'athletic' },         // TSN+ 01...
-    { prefix: 'WNBA ', count: 30, sport: 'basketball' },        // WNBA 01...
-    { prefix: 'Tennis ', count: 150, sport: 'tennis' },         // Tennis 01...
-    { prefix: 'MAX US', count: 300, sport: 'athletic' },        // MAX US01 (no space)
-    { prefix: 'UEFA ', count: 20, sport: 'soccer' },            // UEFA 01...
-    { prefix: 'Clubber Event ', count: 89, sport: 'athletic' }, // Clubber Event 01...
-    { prefix: 'MLS ', count: 60, sport: 'soccer' },             // MLS 01...
-    { prefix: 'EFL', count: 40, sport: 'soccer' },              // EFL01 (no space)
-    { prefix: 'PPV ', count: 120, sport: 'athletic' },          // PPV 01...
-    { prefix: 'Dirtvision ', count: 10, sport: 'racing' }       // Dirtvision 01...
+// Channel list with proper spacing
+var channels = [
+    { prefix: 'MLB ', count: 30 },
+    { prefix: 'Peacock Event ', count: 100 },
+    { prefix: 'NFL Game Pass ', count: 30 },
+    { prefix: 'VIX+ ', count: 10 },
+    { prefix: 'BTN+ ', count: 100 },
+    { prefix: 'Paramount+ ', count: 100 },
+    { prefix: 'Stan Sports ', count: 81 },
+    { prefix: 'Milb ', count: 300 },
+    { prefix: 'ESPN+ ', count: 300 },
+    { prefix: 'Flo Wrestling ', count: 100 },
+    { prefix: 'Flo Hockey ', count: 300 },
+    { prefix: 'NHL ', count: 30 },
+    { prefix: 'Flo Baseball ', count: 100 },
+    { prefix: 'Flo Football ', count: 100 },
+    { prefix: 'Flo College ', count: 300 },
+    { prefix: 'Flo Racing ', count: 50 },
+    { prefix: 'TSN+ ', count: 100 },
+    { prefix: 'WNBA ', count: 30 },
+    { prefix: 'Tennis ', count: 150 },
+    { prefix: 'MAX US', count: 300 }, // No space
+    { prefix: 'UEFA ', count: 20 },
+    { prefix: 'Clubber Event ', count: 89 },
+    { prefix: 'MLS ', count: 60 },
+    { prefix: 'EFL', count: 40 }, // No space
+    { prefix: 'PPV ', count: 120 },
+    { prefix: 'Dirtvision ', count: 10 }
 ];
 
-// Initialize on load
+// Load token on start
 window.onload = function() {
-    // Always load saved token on page load
-    const savedToken = localStorage.getItem('githubToken');
-    if (savedToken) {
-        document.getElementById('githubToken').value = savedToken;
-        showStatus('Token loaded. Ready to use!', 'success');
-    } else {
-        showStatus('Ready! Please enter your GitHub token first.', 'info');
+    var token = localStorage.getItem('githubToken');
+    if (token) {
+        document.getElementById('githubToken').value = token;
     }
+    showMsg('Ready to use!', 'info');
 };
 
-// Show status message
-function showStatus(message, type) {
-    const status = document.getElementById('status');
-    status.textContent = message;
-    status.className = 'status show ' + type;
-    setTimeout(() => {
-        status.classList.remove('show');
+// Show message
+function showMsg(msg, type) {
+    var status = document.getElementById('status');
+    status.textContent = msg;
+    status.className = type;
+    setTimeout(function() {
+        status.style.display = 'none';
     }, 5000);
 }
 
 // Format date for XML
-function formatDateForXML(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const h = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    const s = String(date.getSeconds()).padStart(2, '0');
-    return `${y}${m}${d}${h}${min}${s} +0000`;
+function formatDate(date) {
+    var y = date.getFullYear();
+    var m = ('0' + (date.getMonth() + 1)).slice(-2);
+    var d = ('0' + date.getDate()).slice(-2);
+    var h = ('0' + date.getHours()).slice(-2);
+    var min = ('0' + date.getMinutes()).slice(-2);
+    var s = ('0' + date.getSeconds()).slice(-2);
+    return y + m + d + h + min + s + ' +0000';
 }
 
-// Parse XML date
-function parseXMLDate(xmlDate) {
-    if (!xmlDate) return new Date();
-    const match = xmlDate.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
-    if (match) {
-        return new Date(match[1], match[2]-1, match[3], match[4], match[5], match[6]);
+// Parse date
+function parseDate(str) {
+    // Try 2025-09-22 19:30
+    var m = str.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+    if (m) {
+        return new Date(m[1], m[2]-1, m[3], m[4], m[5]);
     }
-    return new Date();
+    
+    // Try Sep 22 7:00 PM
+    var months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    m = str.match(/(\w+)\s+(\d+)\s+(\d+):(\d+)\s*(AM|PM)/i);
+    if (m) {
+        var hour = parseInt(m[3]);
+        if (m[5].toUpperCase() === 'PM' && hour !== 12) hour += 12;
+        if (m[5].toUpperCase() === 'AM' && hour === 12) hour = 0;
+        return new Date(new Date().getFullYear(), months[m[1]], parseInt(m[2]), hour, parseInt(m[4]));
+    }
+    
+    return null;
 }
 
-// Initialize fresh channels with proper display names
+// Initialize channels
 function initChannels() {
-    try {
-        if (currentEPG && !confirm('This will replace ALL existing data with fresh channels. Continue?')) {
-            return;
+    if (currentEPG && !confirm('Replace all data with fresh channels?')) return;
+    
+    var progs = [];
+    var now = new Date();
+    
+    channels.forEach(function(ch) {
+        for (var i = 1; i <= ch.count; i++) {
+            var num = ('0' + i).slice(-2);
+            var displayName = ch.prefix + num;
+            var xmlId = displayName.replace(/\s+/g, '');
+            
+            progs.push({
+                channel: xmlId,
+                displayName: displayName,
+                start: formatDate(now),
+                stop: formatDate(new Date(now.getTime() + 3600000)),
+                title: 'Channel Placeholder',
+                desc: 'Placeholder for ' + displayName
+            });
         }
-        
-        const programmes = [];
-        const now = new Date();
-        
-        channelConfigs.forEach(config => {
-            for (let i = 1; i <= config.count; i++) {
-                const num = String(i).padStart(2, '0');
-                // These channels have NO space before number
-                const noSpaceChannels = ['MAX US', 'EFL'];
-                let displayName;
-                
-                if (noSpaceChannels.some(ch => config.prefix.startsWith(ch))) {
-                    displayName = config.prefix.trim() + num;  // No space
-                } else {
-                    displayName = config.prefix.trim() + ' ' + num;  // With space
-                }
-                
-                const xmlId = displayName.replace(/[\s\-\.]+/g, '');
-                
-                programmes.push({
-                    channel: xmlId,
-                    displayName: displayName,
-                    start: formatDateForXML(now),
-                    stop: formatDateForXML(new Date(now.getTime() + 3600000)),
-                    title: 'Channel Placeholder',
-                    desc: 'Placeholder for ' + displayName
-                });
-            }
-        });
-        
-        currentEPG = generateXML(programmes);
-        document.getElementById('xmlOutput').textContent = currentEPG;
-        showStatus('Initialized ' + programmes.length + ' channels with proper IDs!', 'success');
-    } catch (e) {
-        showStatus('Error: ' + e.message, 'error');
-    }
+    });
+    
+    currentEPG = buildXML(progs);
+    document.getElementById('xmlOutput').textContent = currentEPG;
+    showMsg('Initialized ' + progs.length + ' channels!', 'success');
 }
 
-// Generate XML
-function generateXML(programmes) {
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n';
+// Build XML
+function buildXML(progs) {
+    var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n';
     
     // Get unique channels
-    const channels = new Map();
-    programmes.forEach(p => {
-        if (!channels.has(p.channel)) {
-            channels.set(p.channel, p.displayName || p.channel);
+    var chans = {};
+    progs.forEach(function(p) {
+        if (!chans[p.channel]) {
+            chans[p.channel] = p.displayName || p.channel;
         }
     });
     
     // Add channels
-    Array.from(channels.keys()).sort().forEach(id => {
-        xml += `  <channel id="${id}">\n`;
-        xml += `    <display-name>${channels.get(id)}</display-name>\n`;
-        xml += `  </channel>\n`;
+    Object.keys(chans).sort().forEach(function(id) {
+        xml += '  <channel id="' + id + '">\n';
+        xml += '    <display-name>' + chans[id] + '</display-name>\n';
+        xml += '  </channel>\n';
     });
     
     // Add programmes
-    programmes.sort((a,b) => {
+    progs.sort(function(a,b) {
         if (a.channel !== b.channel) return a.channel.localeCompare(b.channel);
         return a.start.localeCompare(b.start);
-    }).forEach(p => {
-        xml += `  <programme channel="${p.channel}" start="${p.start}" stop="${p.stop}">\n`;
-        xml += `    <title>${escapeXML(p.title)}</title>\n`;
-        xml += `    <desc>${escapeXML(p.desc)}</desc>\n`;
-        xml += `  </programme>\n`;
+    });
+    
+    progs.forEach(function(p) {
+        xml += '  <programme channel="' + p.channel + '" start="' + p.start + '" stop="' + p.stop + '">\n';
+        xml += '    <title>' + escapeXML(p.title) + '</title>\n';
+        xml += '    <desc>' + escapeXML(p.desc) + '</desc>\n';
+        xml += '  </programme>\n';
     });
     
     xml += '</tv>';
@@ -432,397 +368,294 @@ function generateXML(programmes) {
 
 // Escape XML
 function escapeXML(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
+    return str.replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&apos;');
 }
 
 // Parse existing EPG
-function parseEPG(xmlStr) {
-    const programmes = [];
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlStr, 'text/xml');
+function parseEPG(xml) {
+    var progs = [];
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(xml, 'text/xml');
     
     // Get display names
-    const displayNames = new Map();
-    const channels = doc.getElementsByTagName('channel');
-    for (let ch of channels) {
-        const id = ch.getAttribute('id');
-        const dn = ch.getElementsByTagName('display-name')[0];
-        if (dn) displayNames.set(id, dn.textContent);
+    var names = {};
+    var chans = doc.getElementsByTagName('channel');
+    for (var i = 0; i < chans.length; i++) {
+        var id = chans[i].getAttribute('id');
+        var dn = chans[i].getElementsByTagName('display-name')[0];
+        if (dn) names[id] = dn.textContent;
     }
     
     // Get programmes
-    const progs = doc.getElementsByTagName('programme');
-    for (let prog of progs) {
-        const channel = prog.getAttribute('channel');
-        programmes.push({
-            channel: channel,
-            displayName: displayNames.get(channel) || channel,
-            start: prog.getAttribute('start'),
-            stop: prog.getAttribute('stop'),
-            title: prog.getElementsByTagName('title')[0]?.textContent || '',
-            desc: prog.getElementsByTagName('desc')[0]?.textContent || ''
+    var ps = doc.getElementsByTagName('programme');
+    for (var i = 0; i < ps.length; i++) {
+        var ch = ps[i].getAttribute('channel');
+        var t = ps[i].getElementsByTagName('title')[0];
+        var d = ps[i].getElementsByTagName('desc')[0];
+        progs.push({
+            channel: ch,
+            displayName: names[ch] || ch,
+            start: ps[i].getAttribute('start'),
+            stop: ps[i].getAttribute('stop'),
+            title: t ? t.textContent : '',
+            desc: d ? d.textContent : ''
         });
     }
     
-    return programmes;
+    return progs;
 }
 
-// Parse date time
-function parseDateTime(str) {
-    const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    
-    // Sep 22 7:00 PM
-    let match = str.match(/(\w+)\s+(\d+)\s+(\d+):(\d+)\s*(AM|PM)/i);
-    if (match) {
-        const [,mon,day,hr,min,ap] = match;
-        let hour = parseInt(hr);
-        if (ap.toUpperCase() === 'PM' && hour !== 12) hour += 12;
-        if (ap.toUpperCase() === 'AM' && hour === 12) hour = 0;
-        return new Date(new Date().getFullYear(), months[mon], parseInt(day), hour, parseInt(min));
-    }
-    
-    // 17:45 22/09
-    match = str.match(/(\d+):(\d+)\s+(\d+)\/(\d+)/);
-    if (match) {
-        const [,hr,min,day,mon] = match;
-        return new Date(new Date().getFullYear(), parseInt(mon)-1, parseInt(day), parseInt(hr), parseInt(min));
-    }
-    
-    return null;
-}
-
-// Format 12hr time
-function format12Hr(date) {
-    let h = date.getHours();
-    const m = date.getMinutes();
-    const ap = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return h + ':' + String(m).padStart(2,'0') + ' ' + ap;
-}
-
-// Get sport type
-function getSportType(channel) {
-    const ch = channel.toLowerCase();
-    if (ch.includes('racing') || ch.includes('dirtvision')) return 'racing';
-    if (ch.includes('mlb') || ch.includes('baseball')) return 'baseball';
-    if (ch.includes('nfl') || ch.includes('football')) return 'football';
-    if (ch.includes('nhl') || ch.includes('hockey')) return 'hockey';
-    if (ch.includes('nba') || ch.includes('wnba')) return 'basketball';
-    if (ch.includes('soccer') || ch.includes('mls') || ch.includes('uefa')) return 'soccer';
-    return 'athletic';
-}
-
-// Add events to current EPG
+// Add events
 function addEvents() {
-    try {
-        const input = document.getElementById('eventInput').value.trim();
-        if (!input) {
-            showStatus('Please enter some events', 'error');
-            return;
+    var input = document.getElementById('eventInput').value.trim();
+    if (!input) {
+        showMsg('Enter some events first', 'error');
+        return;
+    }
+    
+    var progs = currentEPG ? parseEPG(currentEPG) : [];
+    var lines = input.split('\n');
+    var added = 0;
+    
+    lines.forEach(function(line) {
+        line = line.trim();
+        if (!line) return;
+        
+        // Try format: Channel - Event 2025-09-22 19:30
+        var m = line.match(/^(.+?)\s*-\s*(.+?)\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})$/);
+        
+        // Try format: Channel :Event @ Date
+        if (!m) {
+            m = line.match(/^(.+?)\s*:\s*(.+?)\s*@\s*(.+)$/);
         }
         
-        // IMPORTANT: Load existing programmes if EPG exists
-        let programmes = [];
-        if (currentEPG) {
-            programmes = parseEPG(currentEPG);
-            showStatus('Adding to existing ' + programmes.length + ' programmes...', 'info');
-        } else {
-            showStatus('No existing EPG. Creating new...', 'info');
-        }
-        
-        const lines = input.split('\n');
-        let added = 0;
-        
-        lines.forEach(line => {
-            line = line.trim();
-            if (!line) return;  // Skip empty lines
+        if (m) {
+            var channel = m[1].trim();
+            var event = m[2].trim();
+            var eventTime = parseDate(m[3].trim());
             
-            const match = line.match(/^(.+?)\s*:\s*(.+?)\s*@\s*(.+)$/);
-            if (match) {
-                const [,ch,event,time] = match;
-                const eventTime = parseDateTime(time.trim());
+            if (eventTime) {
+                var xmlId = channel.replace(/\s+/g, '');
+                var isRacing = channel.toLowerCase().includes('racing');
                 
-                if (eventTime) {
-                    // Keep the display name exactly as entered
-                    const displayName = ch.trim();
-                    const xmlId = displayName.replace(/[\s\-\.]+/g, '');
-                    const sport = getSportType(ch);
-                    
-                    // Event later (8hr before)
-                    const laterStart = new Date(eventTime.getTime() - 8.5*3600000);
-                    const laterEnd = new Date(eventTime.getTime() - 0.5*3600000);
-                    programmes.push({
-                        channel: xmlId,
-                        displayName: displayName,
-                        start: formatDateForXML(laterStart),
-                        stop: formatDateForXML(laterEnd),
-                        title: 'Event Later Today - ' + event + ' @ ' + format12Hr(eventTime),
-                        desc: 'Upcoming: ' + event
-                    });
-                    
-                    // Warmup (30min before)
-                    const warmupStart = new Date(eventTime.getTime() - 0.5*3600000);
-                    programmes.push({
-                        channel: xmlId,
-                        displayName: displayName,
-                        start: formatDateForXML(warmupStart),
-                        stop: formatDateForXML(eventTime),
-                        title: sport === 'racing' ? 'Engines Starting, Race Starting Soon' : 'Players Warming Up',
-                        desc: 'Pre-game coverage for ' + event
-                    });
-                    
-                    // Main event (3.5hr)
-                    const eventEnd = new Date(eventTime.getTime() + 3.5*3600000);
-                    programmes.push({
-                        channel: xmlId,
-                        displayName: displayName,
-                        start: formatDateForXML(eventTime),
-                        stop: formatDateForXML(eventEnd),
-                        title: 'Live: ' + event,
-                        desc: 'Live coverage of ' + event
-                    });
-                    
-                    added += 3;
-                } else {
-                    showStatus('Could not parse date for: ' + line, 'error');
-                }
-            } else {
-                showStatus('Invalid format for: ' + line, 'error');
+                // 8hr before
+                var t1 = new Date(eventTime.getTime() - 8.5*3600000);
+                var t2 = new Date(eventTime.getTime() - 0.5*3600000);
+                progs.push({
+                    channel: xmlId,
+                    displayName: channel,
+                    start: formatDate(t1),
+                    stop: formatDate(t2),
+                    title: 'Event Later Today - ' + event,
+                    desc: 'Upcoming: ' + event
+                });
+                
+                // Warmup
+                var t3 = new Date(eventTime.getTime() - 0.5*3600000);
+                progs.push({
+                    channel: xmlId,
+                    displayName: channel,
+                    start: formatDate(t3),
+                    stop: formatDate(eventTime),
+                    title: isRacing ? 'Engines Starting, Race Starting Soon' : 'Players Warming Up',
+                    desc: 'Pre-game for ' + event
+                });
+                
+                // Main event
+                var t4 = new Date(eventTime.getTime() + 3.5*3600000);
+                progs.push({
+                    channel: xmlId,
+                    displayName: channel,
+                    start: formatDate(eventTime),
+                    stop: formatDate(t4),
+                    title: 'Live: ' + event,
+                    desc: 'Live coverage of ' + event
+                });
+                
+                added += 3;
             }
-        });
-        
-        if (added > 0) {
-            currentEPG = generateXML(programmes);
-            document.getElementById('xmlOutput').textContent = currentEPG;
-            showStatus('✅ Added ' + added + ' new programmes! Total now: ' + programmes.length, 'success');
-        } else {
-            showStatus('No events were added. Check format.', 'error');
         }
-    } catch (e) {
-        showStatus('Error: ' + e.message, 'error');
-        console.error(e);
+    });
+    
+    if (added > 0) {
+        currentEPG = buildXML(progs);
+        document.getElementById('xmlOutput').textContent = currentEPG;
+        showMsg('Added ' + added + ' programmes! Total: ' + progs.length, 'success');
+    } else {
+        showMsg('No events added. Check format.', 'error');
     }
 }
 
-// Clear input
-function clearInput() {
-    document.getElementById('eventInput').value = '';
-    showStatus('Input cleared', 'success');
+// Clear all data
+function clearAllData() {
+    if (!confirm('This will clear ALL EPG data. Are you sure?')) {
+        return;
+    }
+    
+    // Force clear everything
+    currentEPG = null;
+    
+    // Clear the display
+    var output = document.getElementById('xmlOutput');
+    output.textContent = 'No EPG generated yet. Click "Initialize Channels" to start.';
+    
+    // Clear input field
+    var input = document.getElementById('eventInput');
+    if (input) {
+        input.value = '';
+    }
+    
+    // Hide stats if shown
+    var stats = document.getElementById('stats');
+    if (stats) {
+        stats.style.display = 'none';
+        stats.innerHTML = '';
+    }
+    
+    showMsg('All data has been cleared!', 'success');
 }
 
-// Load from GitHub and continue
-async function loadAndAppend() {
+// Load from GitHub
+async function loadFromGitHub() {
     try {
-        document.getElementById('saveStatus').innerHTML = '<span class="loading">Loading from GitHub...</span>';
-        
-        const response = await fetch(
-            'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE,
-            { headers: { 'Accept': 'application/vnd.github.v3+json' } }
-        );
-        
-        if (response.ok) {
-            const data = await response.json();
+        showMsg('Loading from GitHub...', 'info');
+        var resp = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE);
+        if (resp.ok) {
+            var data = await resp.json();
             currentEPG = atob(data.content);
             document.getElementById('xmlOutput').textContent = currentEPG;
-            const progs = parseEPG(currentEPG);
-            document.getElementById('saveStatus').innerHTML = '';
-            showStatus('Loaded ' + progs.length + ' programmes from GitHub! Ready to add more.', 'success');
+            var progs = parseEPG(currentEPG);
+            showMsg('Loaded ' + progs.length + ' programmes!', 'success');
         } else {
-            document.getElementById('saveStatus').innerHTML = '';
-            showStatus('No existing file on GitHub. Starting fresh.', 'info');
-            initChannels();
+            showMsg('No file found on GitHub', 'error');
         }
-    } catch (e) {
-        document.getElementById('saveStatus').innerHTML = '';
-        showStatus('Error loading: ' + e.message, 'error');
+    } catch(e) {
+        showMsg('Error: ' + e.message, 'error');
     }
 }
 
 // Purge old
 function purgeOld() {
-    try {
-        if (!currentEPG) {
-            showStatus('No data to purge', 'error');
-            return;
-        }
-        
-        if (!confirm('Remove programmes older than 7 days?')) return;
-        
-        const programmes = parseEPG(currentEPG);
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - 7);
-        
-        const before = programmes.length;
-        const filtered = programmes.filter(p => parseXMLDate(p.stop) > cutoff);
-        
-        currentEPG = generateXML(filtered);
-        document.getElementById('xmlOutput').textContent = currentEPG;
-        showStatus('Removed ' + (before - filtered.length) + ' old programmes', 'success');
-    } catch (e) {
-        showStatus('Error: ' + e.message, 'error');
+    if (!currentEPG) {
+        showMsg('No data', 'error');
+        return;
     }
+    if (!confirm('Remove programmes older than 7 days?')) return;
+    
+    var progs = parseEPG(currentEPG);
+    var cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    
+    var before = progs.length;
+    progs = progs.filter(function(p) {
+        var date = new Date(p.stop.slice(0,4), p.stop.slice(4,6)-1, p.stop.slice(6,8));
+        return date > cutoff;
+    });
+    
+    currentEPG = buildXML(progs);
+    document.getElementById('xmlOutput').textContent = currentEPG;
+    showMsg('Removed ' + (before - progs.length) + ' old programmes', 'success');
 }
 
-// Clear all
-function clearAll() {
+// Show stats
+function showStats() {
     if (!currentEPG) {
-        showStatus('No data to clear', 'error');
+        showMsg('No data', 'error');
         return;
     }
     
-    if (confirm('Clear ALL data?')) {
-        currentEPG = null;
-        document.getElementById('xmlOutput').textContent = 'No EPG generated yet. Click "Initialize Fresh Channels" or "Load & Continue" to start.';
-        document.getElementById('eventInput').value = '';
-        document.getElementById('stats').style.display = 'none';
-        showStatus('All data cleared!', 'success');
-    }
-}
-
-// Show statistics
-function showStatistics() {
-    try {
-        if (!currentEPG) {
-            showStatus('No data to analyze', 'error');
-            return;
-        }
-        
-        const programmes = parseEPG(currentEPG);
-        const channels = new Set(programmes.map(p => p.channel));
-        const now = new Date();
-        
-        const stats = {
-            channels: channels.size,
-            total: programmes.length,
-            live: programmes.filter(p => parseXMLDate(p.start) <= now && parseXMLDate(p.stop) >= now).length,
-            upcoming: programmes.filter(p => parseXMLDate(p.start) > now).length,
-            past: programmes.filter(p => parseXMLDate(p.stop) < now).length
-        };
-        
-        const statsDiv = document.getElementById('stats');
-        statsDiv.innerHTML = `
-            <div class="stat-card"><h4>Channels</h4><p>${stats.channels}</p></div>
-            <div class="stat-card"><h4>Total</h4><p>${stats.total}</p></div>
-            <div class="stat-card"><h4>Live</h4><p>${stats.live}</p></div>
-            <div class="stat-card"><h4>Upcoming</h4><p>${stats.upcoming}</p></div>
-            <div class="stat-card"><h4>Past</h4><p>${stats.past}</p></div>
-        `;
-        statsDiv.style.display = 'grid';
-    } catch (e) {
-        showStatus('Error: ' + e.message, 'error');
-    }
+    var progs = parseEPG(currentEPG);
+    var chans = new Set(progs.map(function(p) { return p.channel; }));
+    
+    var stats = document.getElementById('stats');
+    stats.innerHTML = '<div class="stat-card"><h4>Channels</h4><p>' + chans.size + '</p></div>' +
+                     '<div class="stat-card"><h4>Total</h4><p>' + progs.length + '</p></div>';
+    stats.style.display = 'grid';
 }
 
 // Save token
 function saveToken() {
-    const token = document.getElementById('githubToken').value.trim();
+    var token = document.getElementById('githubToken').value.trim();
     if (token) {
         localStorage.setItem('githubToken', token);
-        showStatus('Token saved! It will be remembered for next time.', 'success');
+        showMsg('Token saved!', 'success');
     } else {
-        // If empty, remove saved token
         localStorage.removeItem('githubToken');
-        showStatus('Token cleared', 'info');
+        showMsg('Token cleared', 'info');
     }
 }
 
-// Save to GitHub (always loads existing first, then saves)
+// Save to GitHub
 async function saveToGitHub() {
     try {
-        const token = document.getElementById('githubToken').value.trim();
+        var token = document.getElementById('githubToken').value.trim();
         if (!token) {
-            showStatus('Please enter GitHub token first', 'error');
+            showMsg('Enter GitHub token first', 'error');
             return;
         }
-        
         if (!currentEPG) {
-            showStatus('No EPG to save', 'error');
+            showMsg('No EPG to save', 'error');
             return;
         }
         
-        document.getElementById('saveStatus').innerHTML = '<span class="loading">Saving to GitHub...</span>';
+        showMsg('Saving...', 'info');
         
-        // Get current SHA if exists
-        let sha = null;
+        // Get SHA if exists
+        var sha = null;
         try {
-            const getResp = await fetch(
-                'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE,
-                {
-                    headers: {
-                        'Authorization': 'token ' + token,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                }
-            );
-            if (getResp.ok) {
-                const data = await getResp.json();
+            var resp = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE, {
+                headers: { 'Authorization': 'token ' + token }
+            });
+            if (resp.ok) {
+                var data = await resp.json();
                 sha = data.sha;
             }
-        } catch (e) {}
+        } catch(e) {}
         
-        // Save file
-        const body = {
-            message: 'Update EPG - ' + new Date().toLocaleString(),
-            content: btoa(unescape(encodeURIComponent(currentEPG)))
+        // Save
+        var body = {
+            message: 'Update EPG',
+            content: btoa(currentEPG)
         };
         if (sha) body.sha = sha;
         
-        const response = await fetch(
-            'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE,
-            {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'token ' + token,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            }
-        );
+        resp = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'token ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
         
-        if (response.ok) {
-            document.getElementById('saveStatus').innerHTML = '✅ Saved successfully!';
-            showStatus('Saved to GitHub successfully!', 'success');
-            setTimeout(() => {
-                document.getElementById('saveStatus').innerHTML = '';
-            }, 3000);
+        if (resp.ok) {
+            showMsg('Saved to GitHub!', 'success');
         } else {
-            const error = await response.text();
-            document.getElementById('saveStatus').innerHTML = '❌ Save failed';
-            showStatus('GitHub error: ' + error, 'error');
-            setTimeout(() => {
-                document.getElementById('saveStatus').innerHTML = '';
-            }, 5000);
+            showMsg('Save failed', 'error');
         }
-    } catch (e) {
-        document.getElementById('saveStatus').innerHTML = '❌ Save failed';
-        showStatus('Error: ' + e.message, 'error');
-        setTimeout(() => {
-            document.getElementById('saveStatus').innerHTML = '';
-        }, 5000);
+    } catch(e) {
+        showMsg('Error: ' + e.message, 'error');
     }
 }
 
 // Download XML
 function downloadXML() {
     if (!currentEPG) {
-        showStatus('No EPG to download', 'error');
+        showMsg('No EPG to download', 'error');
         return;
     }
     
-    const blob = new Blob([currentEPG], {type: 'text/xml'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    var blob = new Blob([currentEPG], {type: 'text/xml'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
     a.href = url;
     a.download = 'KTV_EPG_Events-all.xml';
     a.click();
-    URL.revokeObjectURL(url);
-    showStatus('Downloaded!', 'success');
+    showMsg('Downloaded!', 'success');
 }
 </script>
 </body>
